@@ -34,7 +34,7 @@ export function SimulateurCrypto({ embedded = false }: Props) {
     coin: DEFAULT_COIN,
     amount: 100,
     frequency: "monthly",
-    startDate: "2024-01-01",
+    startDate: "2023-01-01",
     endDate: todayIso(),
   });
 
