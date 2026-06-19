@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Coin, Frequency, PricePoint, SimulationResult } from "@/lib/types";
 import { simulate } from "@/lib/dca";
 import { formatEur, formatPercent } from "@/lib/format";
-import { Pill } from "@/components/ui/Pill";
 import { Segmented } from "@/components/ui/Segmented";
 import { Card } from "@/components/ui/Card";
 import { InfoIcon, ChartAreaIcon, CalendarIcon } from "@/components/ui/icons";
@@ -156,7 +155,7 @@ export function SimulateurCrypto({ embedded = false }: Props) {
       <div className="text-center">
         <div className="flex items-center justify-center gap-4">
           <span className="hidden h-px w-16 bg-gradient-to-r from-transparent to-accent sm:block" />
-          <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-white sm:text-3xl lg:text-4xl">
+          <h1 className="text-xl font-medium uppercase tracking-wide text-white sm:text-2xl lg:text-3xl">
             Simulateur Plus-Value Crypto
           </h1>
           <span className="hidden h-px w-16 bg-gradient-to-l from-transparent to-accent sm:block" />
@@ -182,36 +181,42 @@ export function SimulateurCrypto({ embedded = false }: Props) {
         </p>
       </div>
 
-      {/* Vos résultats */}
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-3 font-display text-xl font-semibold text-white">
-          <span className="h-6 w-1 rounded-full bg-accent" />
-          Vos résultats
-        </h2>
-      </div>
-
-      <div className="mt-5 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-        {/* Colonne formulaire */}
+      <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        {/* Colonne formulaire + boutons */}
         <div>
           <SimulationForm state={state} onChange={onChange} />
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Pill variant="primary" onClick={handleSave}>
+          <div className="mt-8 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={handleSave}
+              className="w-full rounded-full bg-primary px-4 py-4 text-sm font-light text-white transition-colors hover:bg-primary-600"
+            >
               Enregistrer la simulation
-            </Pill>
-            <Pill variant="secondary" onClick={handleShare}>
+            </button>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="w-full rounded-full bg-white px-4 py-4 text-sm font-light text-navy-950 transition-colors hover:bg-white/90"
+            >
               Partager mes résultats
-            </Pill>
+            </button>
           </div>
         </div>
 
-        {/* Colonne résultats */}
-        <ResultsPanel
-          result={result}
-          coin={state.coin}
-          frequency={state.frequency}
-          loading={loading}
-          error={error}
-        />
+        {/* Colonne résultats : "Vos résultats" placé APRÈS le formulaire/boutons (comme la suite S'investir) */}
+        <div>
+          <h2 className="mb-5 flex items-center gap-3 text-2xl font-normal text-white">
+            <span className="h-6 w-1 rounded-full bg-accent" />
+            Vos résultats
+          </h2>
+          <ResultsPanel
+            result={result}
+            coin={state.coin}
+            frequency={state.frequency}
+            loading={loading}
+            error={error}
+          />
+        </div>
       </div>
 
       {/* Graphiques / Calendrier */}
@@ -231,20 +236,20 @@ export function SimulateurCrypto({ embedded = false }: Props) {
           <div className="mt-6 flex flex-wrap items-end justify-center gap-8 text-center">
             <div>
               <p className="text-xs font-light text-white/50">Capital final</p>
-              <p className="font-display text-lg font-semibold text-white">
+              <p className="text-lg font-semibold text-white">
                 {formatEur(result.finalValue)}
               </p>
             </div>
             <div>
               <p className="text-xs font-light text-white/50">Investi</p>
-              <p className="font-display text-lg font-semibold text-white">
+              <p className="text-lg font-semibold text-white">
                 {formatEur(result.invested)}
               </p>
             </div>
             <div>
               <p className="text-xs font-light text-white/50">Performance</p>
               <p
-                className="font-display text-lg font-semibold"
+                className="text-lg font-semibold"
                 style={{
                   color:
                     result.gain >= 0 ? "var(--color-positive)" : "var(--color-negative)",

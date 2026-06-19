@@ -83,7 +83,7 @@ export function ResultsPanel({
         info="Valeur de votre portefeuille à la date de fin, au dernier prix connu."
         className="sm:col-span-2"
       >
-        <p className="font-display text-3xl font-semibold text-white sm:text-4xl">
+        <p className="text-3xl font-semibold text-white sm:text-4xl">
           {formatEur(result.finalValue)}
         </p>
         <div className="mt-5 flex items-center justify-between text-xs font-light">
@@ -123,7 +123,7 @@ export function ResultsPanel({
         info="Évolution en pourcentage : (capital final − investi) / investi."
       >
         <p
-          className="font-display text-3xl font-semibold sm:text-4xl"
+          className="text-3xl font-semibold sm:text-4xl"
           style={{ color: gainPositive ? "var(--color-positive)" : "var(--color-negative)" }}
         >
           {formatPercent(result.performance)}
@@ -135,7 +135,7 @@ export function ResultsPanel({
         label="Prix moyen d'acquisition"
         info="Montant total investi divisé par la quantité totale acquise."
       >
-        <p className="font-display text-2xl font-semibold text-white sm:text-3xl">
+        <p className="text-2xl font-semibold text-white sm:text-3xl">
           {formatEur(result.averagePrice)}
         </p>
       </StatCard>
@@ -145,14 +145,14 @@ export function ResultsPanel({
         label="Acquis"
         info="Quantité totale de crypto accumulée sur la période."
       >
-        <p className="font-display text-2xl font-semibold text-white sm:text-3xl">
+        <p className="text-2xl font-semibold text-white sm:text-3xl">
           {formatUnits(result.units, coin?.symbol)}
         </p>
       </StatCard>
 
       {/* Investi */}
       <StatCard label="Investi">
-        <p className="font-display text-2xl font-semibold text-white sm:text-3xl">
+        <p className="text-2xl font-semibold text-white sm:text-3xl">
           {formatEur(result.invested)}
         </p>
         <p className="mt-1 text-xs font-light text-white/50">
