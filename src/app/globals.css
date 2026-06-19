@@ -93,6 +93,20 @@ input[type="number"] {
   appearance: textfield;
 }
 
+/* Curseur pointer sur tous les elements interactifs */
+@layer base {
+  button,
+  [role="button"],
+  a,
+  select,
+  summary {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
 /* embed: fond transparent pour intégration iframe */
 body.embed {
   background: transparent;
