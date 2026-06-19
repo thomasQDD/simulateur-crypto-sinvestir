@@ -75,7 +75,7 @@ export function SimulateurCrypto({ embedded = false }: Props) {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      if (!coin || !startDate || !endDate || startDate > endDate) {
+      if (!coin || !coin.symbol || !startDate || !endDate || startDate > endDate) {
         setError(null);
         setPrices([]);
         setLoading(false);
@@ -85,7 +85,7 @@ export function SimulateurCrypto({ embedded = false }: Props) {
       setError(null);
       try {
         const res = await fetch(
-          `/api/history?id=${encodeURIComponent(coin.id)}&from=${startDate}&to=${endDate}`
+          `/api/history?sym=${encodeURIComponent(coin.symbol)}&from=${startDate}&to=${endDate}`
         );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Erreur de récupération");

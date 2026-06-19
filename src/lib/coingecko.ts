@@ -1,15 +1,14 @@
 import "server-only";
-import type { Coin, PricePoint } from "./types";
+import type { Coin } from "./types";
 
 const BASE = "https://api.coingecko.com/api/v3";
 const API_KEY = process.env.COINGECKO_API_KEY;
 
-/** Cryptos populaires affichées par défaut (sélecteur). */
+/** Cryptos populaires affichées par défaut (toutes cotées en EUR sur Coinbase). */
 const POPULAR_IDS = [
   "bitcoin",
   "ethereum",
   "solana",
-  "binancecoin",
   "ripple",
   "cardano",
   "dogecoin",
@@ -17,7 +16,8 @@ const POPULAR_IDS = [
   "chainlink",
   "litecoin",
   "avalanche-2",
-  "tron",
+  "uniswap",
+  "stellar",
 ];
 
 interface CgFetchOptions {
@@ -84,30 +84,4 @@ export async function searchCoins(query: string): Promise<Coin[]> {
     name: c.name,
     thumb: c.thumb,
   }));
-}
-
-interface CgMarketChart {
-  prices: [number, number][];
-}
-
-/**
- * Série de prix journaliers (EUR) pour une crypto entre deux dates (ISO).
- * Utilise market_chart/range (granularité journalière pour > 90 jours).
- */
-export async function getPriceHistory(
-  id: string,
-  fromIso: string,
-  toIso: string
-): Promise<PricePoint[]> {
-  const from = Math.floor(new Date(fromIso + "T00:00:00Z").getTime() / 1000);
-  // +1 jour pour s'assurer que la date de fin est couverte
-  const to = Math.floor(new Date(toIso + "T23:59:59Z").getTime() / 1000);
-
-  const data = await cgFetch<CgMarketChart>(
-    `/coins/${encodeURIComponent(
-      id
-    )}/market_chart/range?vs_currency=eur&from=${from}&to=${to}`,
-    { revalidate: 21600 } // 6h : données historiques quasi-statiques
-  );
-  return data.prices;
 }

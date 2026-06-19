@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPriceHistory } from "@/lib/coingecko";
+import { getPriceHistory } from "@/lib/prices";
 
 export const revalidate = 21600;
 
@@ -7,13 +7,13 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id")?.trim();
+  const sym = searchParams.get("sym")?.trim();
   const from = searchParams.get("from")?.trim();
   const to = searchParams.get("to")?.trim();
 
-  if (!id || !from || !to || !ISO.test(from) || !ISO.test(to)) {
+  if (!sym || !from || !to || !ISO.test(from) || !ISO.test(to)) {
     return NextResponse.json(
-      { error: "Paramètres requis : id, from (YYYY-MM-DD), to (YYYY-MM-DD)" },
+      { error: "Paramètres requis : sym, from (YYYY-MM-DD), to (YYYY-MM-DD)" },
       { status: 400 }
     );
   }
@@ -25,11 +25,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const prices = await getPriceHistory(id, from, to);
+    const prices = await getPriceHistory(sym, from, to);
+    if (prices.length === 0) {
+      return NextResponse.json(
+        { error: `Aucune donnée de prix disponible pour ${sym.toUpperCase()} sur cette période.` },
+        { status: 404 }
+      );
+    }
     return NextResponse.json({ prices });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur CoinGecko" },
+      { error: error instanceof Error ? error.message : "Erreur de données" },
       { status: 502 }
     );
   }

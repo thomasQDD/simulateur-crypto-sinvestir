@@ -60,9 +60,10 @@ export function PerformanceChart({ timeline }: { timeline: TimelinePoint[] }) {
   const hp = hover != null ? timeline[hover] : null;
 
   function onMove(e: React.MouseEvent<SVGRectElement>) {
+    // rect commence déjà à x=PAD.left : e.clientX - rect.left = distance dans la zone de tracé
     const rect = e.currentTarget.getBoundingClientRect();
     const px = e.clientX - rect.left;
-    const ratio = Math.min(1, Math.max(0, (px - PAD.left) / innerW));
+    const ratio = Math.min(1, Math.max(0, px / rect.width));
     setHover(Math.round(ratio * (n - 1)));
   }
 

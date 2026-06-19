@@ -29,19 +29,26 @@ npm run dev                  # http://localhost:3000
 | `npm test`       | Tests unitaires de la logique DCA   |
 | `npm run lint`   | ESLint                              |
 
-### Clé API CoinGecko
+### Sources de données — **fonctionne sans aucune clé**
 
-Les prix proviennent de l'API **CoinGecko**. La récupération de l'historique
-(`market_chart/range`) nécessite une **clé Demo (gratuite)** au-delà des 365 derniers jours :
+| Source | Usage | Clé |
+| ------ | ----- | --- |
+| **Coinbase Exchange** | **Prix historiques journaliers** (EUR, plusieurs années) | aucune (API publique) |
+| **CoinGecko** | Catalogue, recherche de cryptos et **logos** | `COINGECKO_API_KEY` (Demo) — optionnelle (quota) |
+| **CryptoCompare** | Repli historique pour étendre la couverture à des milliers d'actifs | `CRYPTOCOMPARE_API_KEY` — optionnelle |
 
-1. Créer une clé sur https://www.coingecko.com/en/api/pricing (plan **Demo**, gratuit).
-2. La renseigner dans `.env.local` :
-   ```
-   COINGECKO_API_KEY=CG-xxxxxxxxxxxxxxxx
-   ```
-3. Sur Vercel : ajouter la même variable d'environnement (`COINGECKO_API_KEY`).
+```
+# .env.local (et variables d'environnement Vercel) — tout est optionnel
+COINGECKO_API_KEY=
+CRYPTOCOMPARE_API_KEY=
+```
 
-> Sans clé, l'application fonctionne mais l'API publique limite l'historique aux **365 derniers jours**.
+> **Pourquoi pas CoinGecko pour l'historique ?** Le plan **CoinGecko Demo (gratuit)** plafonne
+> l'historique à **365 jours** (`market_chart/range` réservé aux plans payants au-delà), ce qui
+> est insuffisant pour un simulateur DCA. On utilise donc l'**API publique Coinbase** (gratuite,
+> sans clé, EUR, multi-années) pour les prix, et CoinGecko uniquement pour le catalogue/logos.
+> Coinbase couvre les principales cryptos cotées en EUR ; pour étendre à des milliers d'actifs,
+> renseigner une clé **CryptoCompare** gratuite (repli automatique).
 
 ---
 
@@ -52,7 +59,7 @@ Les prix proviennent de l'API **CoinGecko**. La récupération de l'historique
 | **Next.js 16 (App Router) + TypeScript** | Aligné sur la stack interne S'investir ; déploiement natif Vercel ; les **Route Handlers** servent de proxy à CoinGecko et **protègent la clé API** (jamais exposée au client). |
 | **Tailwind CSS v4** | Tokens de design centralisés (couleurs, typo) ; itération rapide et fidèle à la charte. |
 | **Graphe en SVG « maison »** (zéro dépendance) | L'app S'investir n'utilise aucune librairie de chart : on reste fidèle **et** on minimise les dépendances (exigence d'embarquabilité). Aire + courbes + tooltip + axes faits main. |
-| **CoinGecko (Demo API)** | Données historiques fiables, des milliers de cryptos ; clé en variable d'environnement. |
+| **CoinGecko + CryptoCompare** | CoinGecko pour le catalogue/recherche/logos ; CryptoCompare pour l'historique long (le plan CoinGecko gratuit est limité à 365 jours). Clés optionnelles, en variables d'environnement. |
 | **Pas d'authentification / Supabase** | Hors périmètre du test. Le simulateur est un **composant autonome**, prêt à être branché à Supabase (sauvegarde des simulations) plus tard. |
 
 **Fidélité au design** : couleurs (`#0049C6`, accent `#1098F7`, or `#F8D047`, fond navy
@@ -69,8 +76,8 @@ src/
   app/
     page.tsx              # Démo : shell de la suite + simulateur
     embed/page.tsx        # Version embarquable (sans shell) pour iframe
-    api/coins/route.ts    # Proxy CoinGecko : liste/recherche de cryptos (caché)
-    api/history/route.ts  # Proxy CoinGecko : prix historiques (caché)
+    api/coins/route.ts    # Proxy CoinGecko : liste/recherche de cryptos + logos (caché)
+    api/history/route.ts  # Proxy prix historiques journaliers (Coinbase, caché)
     layout.tsx, globals.css
   components/
     shell/                # AppShell, Sidebar, Topbar (chrome de la suite)
@@ -80,7 +87,10 @@ src/
   lib/
     dca.ts                # Logique de simulation (pure, testée)
     dca.test.ts           # Tests unitaires
-    coingecko.ts          # Client serveur CoinGecko
+    coingecko.ts          # Client serveur CoinGecko (catalogue + logos)
+    prices.ts             # Orchestrateur prix : Coinbase (défaut) + repli CryptoCompare
+    coinbase.ts           # Client serveur Coinbase (prix historiques EUR, sans clé)
+    cryptocompare.ts      # Client serveur CryptoCompare (repli optionnel)
     format.ts             # Formatage € / % / quantités (locale fr-FR)
     types.ts
 ```
