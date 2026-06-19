@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
-import { CloseIcon } from "@/components/ui/icons";
+import { MobileMenu } from "./MobileMenu";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -17,26 +17,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Drawer mobile */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setMenuOpen(false)}
-          />
-          <div className="absolute left-0 top-0 h-full w-[270px] border-r border-white/10 bg-navy-950">
-            <button
-              type="button"
-              aria-label="Fermer le menu"
-              onClick={() => setMenuOpen(false)}
-              className="absolute right-4 top-4 z-10 text-white/70"
-            >
-              <CloseIcon />
-            </button>
-            <Sidebar />
-          </div>
-        </div>
-      )}
+      {/* Menu plein écran mobile */}
+      {menuOpen && <MobileMenu onClose={() => setMenuOpen(false)} />}
 
       {/* Contenu */}
       <div className="flex min-w-0 flex-1 flex-col">

@@ -1,35 +1,12 @@
-import type { ReactNode } from "react";
-import {
-  DashboardIcon,
-  ChartIcon,
-  CompareIcon,
-  BookmarkIcon,
-  GiftIcon,
-  SettingsIcon,
-  BulbIcon,
-  LogoutIcon,
-} from "@/components/ui/icons";
-
-interface NavItem {
-  label: string;
-  icon: ReactNode;
-  active?: boolean;
-}
-
-const NAV: NavItem[] = [
-  { label: "Tableau de bord", icon: <DashboardIcon /> },
-  { label: "Les simulateurs", icon: <ChartIcon />, active: true },
-  { label: "Les comparateurs", icon: <CompareIcon /> },
-  { label: "Mes simulations", icon: <BookmarkIcon /> },
-  { label: "Formation offerte", icon: <GiftIcon /> },
-];
+import { SettingsIcon, BulbIcon, LogoutIcon } from "@/components/ui/icons";
+import { NAV_ITEMS } from "./navItems";
 
 export function Sidebar() {
   return (
     <div className="flex h-full flex-col bg-white/[0.02] px-4 py-6">
       {/* Profil */}
       <div className="flex items-center gap-3 rounded-2xl px-2 pb-6">
-        <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 font-display text-sm font-semibold text-white">
+        <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-semibold text-white">
           TC
         </span>
         <div className="min-w-0">
@@ -42,7 +19,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex flex-col gap-1">
-        {NAV.map((item) => (
+        {NAV_ITEMS.map((item) => (
           <button
             key={item.label}
             type="button"
