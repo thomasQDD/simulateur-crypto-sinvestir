@@ -30,7 +30,9 @@ export default function RootLayout({
       lang="fr"
       className={`${jakarta.variable} ${lexend.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <div className="app-bg min-h-screen">{children}</div>
+      </body>
     </html>
   );
 }

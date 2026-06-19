@@ -34,17 +34,22 @@ html {
   color-scheme: dark;
 }
 
-/* Fond de page identique à la suite S'investir :
-   base #0B0F1A + dégradé linéaire navy -> noir (sans halo bleu). */
+/* Fond de page identique à la suite S'investir : base #0B0F1A.
+   Le dégradé navy -> noir est porté par un wrapper dimensionné sur le contenu
+   (cf. .app-bg ci-dessous et le wrapper dans le layout), comme leur min-h-dvh. */
 body {
   min-height: 100%;
   color: #fff;
   font-family: var(--font-sans);
   font-weight: 300;
   background-color: #0b0f1a;
-  background-image: linear-gradient(126.82deg, #000519 28.59%, #000000 85.18%);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Dégradé de fond, dimensionné sur le contenu (jamais "fixed"). */
+.app-bg {
+  background-color: #0b0f1a;
+  background-image: linear-gradient(126.82deg, #000519 28.59%, #000000 85.18%);
 }
 
 /* Underline input style (comme les simulateurs S'investir) */
