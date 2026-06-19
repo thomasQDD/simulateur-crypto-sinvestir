@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
+/*
+  Design tokens — relevés sur l'app réelle simulateurs.sinvestir.fr
+  (fond navy, primaire #0049C6, accent #1098F7, or #F8D047, typo Plus Jakarta Sans + Lexend)
+*/
+@theme {
+  --color-navy-950: #000519;
+  --color-navy-900: #03081c;
+  --color-navy-850: #060c24;
+  --color-navy-800: #0a1430;
+
+  --color-primary: #0049c6;
+  --color-primary-600: #0356e0;
+  --color-accent: #1098f7;
+  --color-gold: #f8d047;
+  --color-positive: #34d399;
+  --color-negative: #f87171;
+
+  --color-card: rgba(255, 255, 255, 0.03);
+  --color-card-border: rgba(255, 255, 255, 0.1);
+  --color-field-border: rgba(120, 153, 206, 0.3);
+  --color-muted: rgba(255, 255, 255, 0.6);
+  --color-muted-2: rgba(255, 255, 255, 0.45);
+
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 15px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-base: linear-gradient(126.82deg, #000519 28.59%, #000000 85.18%);
+  --bg-glow: radial-gradient(
+    60% 50% at 75% 0%,
+    rgba(16, 152, 247, 0.18) 0%,
+    rgba(8, 111, 227, 0.12) 24%,
+    rgba(0, 73, 198, 0.07) 40%,
+    rgba(0, 0, 49, 0.02) 56%,
+    rgba(0, 0, 0, 0) 74%
+  );
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  height: 100%;
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  background-color: #000519;
+  background-image: var(--bg-glow), var(--bg-base);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Underline input style (comme les simulateurs S'investir) */
+.field-underline {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-field-border);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 20px;
+  outline: none;
+  width: 100%;
+  padding: 8px 0;
+}
+.field-underline::placeholder {
+  color: var(--color-muted-2);
+}
+.field-underline:focus {
+  border-bottom-color: var(--color-accent);
+}
+
+/* Scrollbar discret sur fond sombre */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+/* Masque les flèches des inputs number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* embed: fond transparent pour intégration iframe */
+body.embed {
+  background: transparent;
 }
