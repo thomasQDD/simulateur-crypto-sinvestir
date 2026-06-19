@@ -11,12 +11,12 @@ export function MobileMenu({ onClose }: { onClose: () => void }) {
     <div
       className="fixed inset-0 z-50 flex flex-col lg:hidden"
       style={{
-        backgroundColor: "#000519",
-        backgroundImage: "var(--bg-glow), var(--bg-base)",
+        backgroundColor: "#0b0f1a",
+        backgroundImage: "linear-gradient(126.82deg, #000519 28.59%, #000000 85.18%)",
       }}
     >
       {/* En-tête : logo à gauche, croix à droite */}
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
+      <div className="flex items-center justify-between px-5 py-5">
         <Logo />
         <button
           type="button"
@@ -28,7 +28,7 @@ export function MobileMenu({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-y-auto px-5 py-6">
+      <div className="flex flex-1 flex-col overflow-y-auto px-6 py-2">
         {/* Profil */}
         <div className="flex items-center gap-3 pb-5">
           <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-semibold text-white">

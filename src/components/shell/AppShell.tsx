@@ -7,15 +7,25 @@ import { MobileMenu } from "./MobileMenu";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar desktop */}
-      <aside className="hidden w-[270px] shrink-0 border-r border-white/10 lg:block">
-        <div className="sticky top-0 h-screen">
-          <Sidebar />
+      {/* Sidebar flottante (desktop) */}
+      <div className="hidden py-6 pl-6 lg:block">
+        <div className="sticky top-6 h-[calc(100vh-3rem)]">
+          <div
+            className={`h-full transition-[width] duration-200 ${
+              collapsed ? "w-[88px]" : "w-[252px]"
+            }`}
+          >
+            <Sidebar
+              collapsed={collapsed}
+              onToggle={() => setCollapsed((v) => !v)}
+            />
+          </div>
         </div>
-      </aside>
+      </div>
 
       {/* Menu plein écran mobile */}
       {menuOpen && <MobileMenu onClose={() => setMenuOpen(false)} />}
