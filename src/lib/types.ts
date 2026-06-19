@@ -32,8 +32,9 @@ export interface Purchase {
 /** Point de la série temporelle pour le graphe */
 export interface TimelinePoint {
   date: string;
-  invested: number; // cumul investi
-  value: number; // valeur du portefeuille
+  invested: number; // cumul investi (€)
+  value: number; // valeur du portefeuille (€)
+  units: number; // quantité de crypto cumulée
 }
 
 export interface SimulationResult {

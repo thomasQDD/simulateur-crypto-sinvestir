@@ -1,145 +1,176 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { TimelinePoint } from "@/lib/types";
-import { formatEur, formatEurCompact, formatDateFr } from "@/lib/format";
+import { formatEur, formatEurCompact, formatUnits, formatDateFr } from "@/lib/format";
 
-const PAD = { top: 16, right: 18, bottom: 30, left: 60 };
-const HEIGHT = 340;
+const PAD = { top: 16, right: 66, bottom: 30, left: 66 };
+const HEIGHT = 360;
 
-export function PerformanceChart({ timeline }: { timeline: TimelinePoint[] }) {
+type SeriesKey = "value" | "invested" | "units";
+type Axis = "eur" | "units";
+
+interface SeriesDef {
+  key: SeriesKey;
+  label: string;
+  color: string;
+  axis: Axis;
+  area?: boolean;
+  dashed?: boolean;
+}
+
+const SERIES: SeriesDef[] = [
+  { key: "value", label: "Valeur du portefeuille", color: "#1098f7", axis: "eur", area: true },
+  { key: "invested", label: "Montant investi", color: "#f8d047", axis: "eur", dashed: true },
+  { key: "units", label: "Quantité acquise", color: "#a78bfa", axis: "units" },
+];
+
+function niceUnits(v: number): string {
+  if (!Number.isFinite(v)) return "—";
+  const digits = v >= 1 ? 2 : v >= 0.01 ? 4 : 6;
+  return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits }).format(v);
+}
+
+export function PerformanceChart({
+  timeline,
+  symbol,
+}: {
+  timeline: TimelinePoint[];
+  symbol?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
   const [hover, setHover] = useState<number | null>(null);
+  const [visible, setVisible] = useState<Record<SeriesKey, boolean>>({
+    value: true,
+    invested: true,
+    units: true,
+  });
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      setWidth(entries[0].contentRect.width);
-    });
+    const ro = new ResizeObserver((entries) => setWidth(entries[0].contentRect.width));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  if (timeline.length < 2) {
+  const n = timeline.length;
+  const innerW = Math.max(0, width - PAD.left - PAD.right);
+  const innerH = HEIGHT - PAD.top - PAD.bottom;
+
+  // Échelles : € à droite (valeur + investi), unités à gauche (quantité)
+  const { eurMax, unitsMax } = useMemo(() => {
+    let e = 0;
+    let u = 0;
+    for (const p of timeline) {
+      if (visible.value) e = Math.max(e, p.value);
+      if (visible.invested) e = Math.max(e, p.invested);
+      if (visible.units) u = Math.max(u, p.units);
+    }
+    return { eurMax: e * 1.08 || 1, unitsMax: u * 1.08 || 1 };
+  }, [timeline, visible]);
+
+  if (n < 2) {
     return (
-      <div ref={ref} className="flex h-[340px] items-center justify-center text-sm font-light text-white/40">
+      <div ref={ref} className="flex h-[360px] items-center justify-center text-sm font-light text-white/40">
         Pas assez de données pour tracer un graphique.
       </div>
     );
   }
 
-  const innerW = Math.max(0, width - PAD.left - PAD.right);
-  const innerH = HEIGHT - PAD.top - PAD.bottom;
-  const n = timeline.length;
-
-  const yMax = Math.max(...timeline.map((p) => Math.max(p.value, p.invested))) * 1.08 || 1;
-
   const x = (i: number) => PAD.left + (i / (n - 1)) * innerW;
-  const y = (v: number) => PAD.top + innerH - (v / yMax) * innerH;
+  const yEur = (v: number) => PAD.top + innerH - (v / eurMax) * innerH;
+  const yUnits = (v: number) => PAD.top + innerH - (v / unitsMax) * innerH;
+  const yOf = (def: SeriesDef, v: number) => (def.axis === "eur" ? yEur(v) : yUnits(v));
 
-  const linePath = (key: "value" | "invested") =>
-    timeline.map((p, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(p[key])}`).join(" ");
+  const linePath = (def: SeriesDef) =>
+    timeline.map((p, i) => `${i === 0 ? "M" : "L"}${x(i)},${yOf(def, p[def.key])}`).join(" ");
+  const areaPath = (def: SeriesDef) =>
+    `M${x(0)},${yOf(def, 0)} ` +
+    timeline.map((p, i) => `L${x(i)},${yOf(def, p[def.key])}`).join(" ") +
+    ` L${x(n - 1)},${yOf(def, 0)} Z`;
 
-  const areaPath =
-    `M${x(0)},${y(0)} ` +
-    timeline.map((p, i) => `L${x(i)},${y(p.value)}`).join(" ") +
-    ` L${x(n - 1)},${y(0)} Z`;
+  const ticks = 4;
+  const eurVisible = visible.value || visible.invested;
 
-  // Graduations Y
-  const yTicks = 4;
-  const yGrid = Array.from({ length: yTicks + 1 }, (_, i) => (yMax / yTicks) * i);
-
-  // Graduations X (~6 dates)
   const xCount = Math.min(6, n);
-  const xIdx = Array.from({ length: xCount }, (_, i) =>
-    Math.round((i / (xCount - 1)) * (n - 1))
-  );
+  const xIdx = Array.from({ length: xCount }, (_, i) => Math.round((i / (xCount - 1)) * (n - 1)));
 
   const hp = hover != null ? timeline[hover] : null;
 
   function onMove(e: React.MouseEvent<SVGRectElement>) {
-    // rect commence déjà à x=PAD.left : e.clientX - rect.left = distance dans la zone de tracé
     const rect = e.currentTarget.getBoundingClientRect();
-    const px = e.clientX - rect.left;
-    const ratio = Math.min(1, Math.max(0, px / rect.width));
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
     setHover(Math.round(ratio * (n - 1)));
   }
 
   return (
     <div ref={ref} className="relative w-full">
-      <svg width={width} height={HEIGHT} role="img" aria-label="Évolution de la valeur du portefeuille">
+      <svg width={width} height={HEIGHT} role="img" aria-label="Évolution de la valeur et de la quantité">
         <defs>
           <linearGradient id="valueFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+            <stop offset="0%" stopColor="#1098f7" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#1098f7" stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* Grille + labels Y */}
-        {yGrid.map((v, i) => (
-          <g key={i}>
-            <line
-              x1={PAD.left}
-              x2={width - PAD.right}
-              y1={y(v)}
-              y2={y(v)}
-              stroke="rgba(255,255,255,0.07)"
-            />
-            <text
-              x={PAD.left - 10}
-              y={y(v) + 4}
-              textAnchor="end"
-              className="fill-white/40"
-              style={{ fontSize: 11 }}
-            >
-              {formatEurCompact(v)}
-            </text>
-          </g>
-        ))}
+        {/* Grille + libellés des axes (gauche = quantité, droite = €) */}
+        {Array.from({ length: ticks + 1 }, (_, i) => {
+          const y = PAD.top + innerH - (i / ticks) * innerH;
+          return (
+            <g key={i}>
+              <line x1={PAD.left} x2={width - PAD.right} y1={y} y2={y} stroke="rgba(255,255,255,0.07)" />
+              {visible.units && (
+                <text x={PAD.left - 8} y={y + 4} textAnchor="end" className="fill-white/40" style={{ fontSize: 10 }}>
+                  {niceUnits((unitsMax / ticks) * i)}
+                </text>
+              )}
+              {eurVisible && (
+                <text x={width - PAD.right + 8} y={y + 4} textAnchor="start" className="fill-white/40" style={{ fontSize: 10 }}>
+                  {formatEurCompact((eurMax / ticks) * i)}
+                </text>
+              )}
+            </g>
+          );
+        })}
 
-        {/* Labels X */}
+        {/* Libellés X (temps) */}
         {xIdx.map((i) => (
-          <text
-            key={i}
-            x={x(i)}
-            y={HEIGHT - 8}
-            textAnchor="middle"
-            className="fill-white/40"
-            style={{ fontSize: 11 }}
-          >
+          <text key={i} x={x(i)} y={HEIGHT - 8} textAnchor="middle" className="fill-white/40" style={{ fontSize: 10 }}>
             {timeline[i].date.slice(0, 7)}
           </text>
         ))}
 
-        {/* Aire + courbes */}
-        <path d={areaPath} fill="url(#valueFill)" />
-        <path d={linePath("value")} fill="none" stroke="var(--color-accent)" strokeWidth={2} />
-        <path
-          d={linePath("invested")}
-          fill="none"
-          stroke="var(--color-gold)"
-          strokeWidth={2}
-          strokeDasharray="5 4"
-        />
+        {/* Aire de la valeur */}
+        {visible.value && <path d={areaPath(SERIES[0])} fill="url(#valueFill)" />}
+
+        {/* Courbes */}
+        {SERIES.map((def) =>
+          visible[def.key] ? (
+            <path
+              key={def.key}
+              d={linePath(def)}
+              fill="none"
+              stroke={def.color}
+              strokeWidth={2}
+              strokeDasharray={def.dashed ? "5 4" : undefined}
+            />
+          ) : null
+        )}
 
         {/* Curseur */}
         {hover != null && hp && (
           <g>
-            <line
-              x1={x(hover)}
-              x2={x(hover)}
-              y1={PAD.top}
-              y2={PAD.top + innerH}
-              stroke="rgba(255,255,255,0.25)"
-            />
-            <circle cx={x(hover)} cy={y(hp.value)} r={4} fill="var(--color-accent)" />
-            <circle cx={x(hover)} cy={y(hp.invested)} r={4} fill="var(--color-gold)" />
+            <line x1={x(hover)} x2={x(hover)} y1={PAD.top} y2={PAD.top + innerH} stroke="rgba(255,255,255,0.25)" />
+            {SERIES.map((def) =>
+              visible[def.key] ? (
+                <circle key={def.key} cx={x(hover)} cy={yOf(def, hp[def.key])} r={3.5} fill={def.color} />
+              ) : null
+            )}
           </g>
         )}
 
-        {/* Zone de capture */}
         <rect
           x={PAD.left}
           y={PAD.top}
@@ -155,30 +186,37 @@ export function PerformanceChart({ timeline }: { timeline: TimelinePoint[] }) {
       {hp && (
         <div
           className="pointer-events-none absolute top-2 z-10 rounded-lg border border-white/10 bg-navy-800/95 px-3 py-2 text-xs shadow-xl"
-          style={{
-            left: Math.min(Math.max(x(hover!) - 70, 4), width - 150),
-          }}
+          style={{ left: Math.min(Math.max(x(hover!) - 80, 4), width - 170) }}
         >
           <p className="mb-1 font-light text-white/60">{formatDateFr(hp.date)}</p>
-          <p className="text-white">
-            <span className="text-accent">●</span> Valeur : {formatEur(hp.value)}
-          </p>
-          <p className="text-white">
-            <span style={{ color: "var(--color-gold)" }}>●</span> Investi :{" "}
-            {formatEur(hp.invested)}
-          </p>
+          {SERIES.filter((d) => visible[d.key]).map((d) => (
+            <p key={d.key} className="text-white">
+              <span style={{ color: d.color }}>●</span>{" "}
+              {d.label} :{" "}
+              {d.axis === "eur" ? formatEur(hp[d.key]) : formatUnits(hp[d.key], symbol)}
+            </p>
+          ))}
         </div>
       )}
 
-      {/* Légende */}
-      <div className="mt-3 flex items-center justify-center gap-6 text-xs font-light text-white/60">
-        <span className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-accent" /> Valeur du portefeuille
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--color-gold)" }} />{" "}
-          Montant investi
-        </span>
+      {/* Légende cliquable (toggle on/off, toutes actives par défaut) */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        {SERIES.map((def) => (
+          <button
+            key={def.key}
+            type="button"
+            onClick={() => setVisible((v) => ({ ...v, [def.key]: !v[def.key] }))}
+            className={`flex items-center gap-2 text-xs font-light transition-opacity ${
+              visible[def.key] ? "text-white/70" : "text-white/40 line-through"
+            }`}
+          >
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ background: def.color, opacity: visible[def.key] ? 1 : 0.4 }}
+            />
+            {def.label}
+          </button>
+        ))}
       </div>
     </div>
   );

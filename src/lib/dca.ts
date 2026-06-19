@@ -186,6 +186,7 @@ export function simulate({
       date: toIso(new Date(ts)),
       invested: cumInvested,
       value: cumUnits * price,
+      units: cumUnits,
     });
   }
 
