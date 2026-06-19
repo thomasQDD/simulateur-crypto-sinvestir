@@ -27,6 +27,7 @@ export interface Purchase {
   invested: number; // montant investi ce jour-là
   units: number; // quantité de crypto acquise ce jour-là
   cumulativeUnits: number; // quantité cumulée jusqu'à cet achat inclus
+  cumulativeInvested: number; // montant cumulé investi jusqu'à cet achat inclus
 }
 
 /** Point de la série temporelle pour le graphe */

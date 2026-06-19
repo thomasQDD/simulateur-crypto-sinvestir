@@ -262,7 +262,11 @@ export function SimulateurCrypto({ embedded = false }: Props) {
 
           <Card className="mt-6">
             {view === "chart" ? (
-              <PerformanceChart timeline={result.timeline} symbol={state.coin?.symbol} />
+              <PerformanceChart
+                timeline={result.timeline}
+                purchases={result.purchases}
+                symbol={state.coin?.symbol}
+              />
             ) : (
               <CalendarView result={result} coin={state.coin} />
             )}

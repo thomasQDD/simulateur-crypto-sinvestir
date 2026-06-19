@@ -132,17 +132,20 @@ export function simulate({
 
   const purchases: Purchase[] = [];
   let runningUnits = 0;
+  let runningInvested = 0;
   for (const date of purchaseDates) {
     const price = priceAt(prices, parseIso(date).getTime());
     if (price == null || price <= 0) continue;
     const units = amount / price;
     runningUnits += units;
+    runningInvested += amount;
     purchases.push({
       date,
       price,
       invested: amount,
       units,
       cumulativeUnits: runningUnits,
+      cumulativeInvested: runningInvested,
     });
   }
   if (purchases.length === 0) return empty;
